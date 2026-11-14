@@ -1,1 +1,595 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>PostNL Pakket Tracker</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 12px;
+    background: #101827;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 450px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    font-size: 23px;
+    margin: 12px 0;
+}
+
+.subtitle {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.progress-box {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 16px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.big-number {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 16px;
+    background: #334155;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #22c55e;
+    transition: width 0.3s;
+}
+
+.percentage {
+    font-size: 20px;
+    margin-top: 12px;
+    color: #22c55e;
+    font-weight: bold;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.stat {
+    background: #1e293b;
+    padding: 15px 8px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 5px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 18px 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.minus {
+    background: #475569;
+}
+
+.plus {
+    background: #16a34a;
+}
+
+.plusfive {
+    background: #2563eb;
+}
+
+.wake {
+    background: #334155;
+    width: 100%;
+    margin-top: 12px;
+    font-size: 15px;
+}
+
+.settings {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+input {
+    background: #0f172a;
+    border: 1px solid #475569;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+    width: 100%;
+    margin-top: 5px;
+    font-size: 16px;
+}
+
+.setting-row {
+    margin-top: 10px;
+}
+
+.reset {
+    background: #dc2626;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 15px;
+}
+
+@media (max-height: 750px) {
+    .progress-box {
+        padding: 12px;
+    }
+
+    .stat {
+        padding: 10px 6px;
+    }
+
+    button {
+        padding: 13px 6px;
+    }
+
+    .big-number {
+        font-size: 38px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📦 PostNL Tracker</h1>
+
+<div class="subtitle">
+    Live bezorgstatistieken
+</div>
+
+<div class="progress-box">
+
+    <div class="big-number">
+        <span id="delivered">60</span>
+        /
+        <span id="totalDisplay">170</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="percentage" id="percentage">
+        35,3%
+    </div>
+
+    <div class="subtitle">
+        <span id="remaining">110</span> pakketten over
+    </div>
+
+</div>
+
+<div class="stats">
+
+    <div class="stat">
+        <div class="stat-value" id="speed">0</div>
+        <div class="stat-label">📦 Per uur</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-value" id="finishTime">--:--</div>
+        <div class="stat-label">🏁 Verwacht klaar</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-value" id="timeLeft">--</div>
+        <div class="stat-label">⏳ Tijd over</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-value" id="elapsed">--</div>
+        <div class="stat-label">🕒 Tijd bezig</div>
+    </div>
+
+</div>
+
+<div class="buttons">
+
+    <button class="minus" onclick="changePackages(-1)">
+        −1
+    </button>
+
+    <button class="plus" onclick="changePackages(1)">
+        +1 📦
+    </button>
+
+    <button class="plusfive" onclick="changePackages(5)">
+        +5
+    </button>
+
+</div>
+
+<button class="wake" id="wakeButton" onclick="keepAwake()">
+    🔆 Scherm wakker houden
+</button>
+
+<details class="settings">
+
+    <summary>⚙️ Instellingen aanpassen</summary>
+
+    <div class="setting-row">
+        <label>Starttijd</label>
+        <input type="time" id="startInput" value="09:40">
+    </div>
+
+    <div class="setting-row">
+        <label>Totaal aantal pakketten</label>
+        <input type="number" id="totalInput" value="170">
+    </div>
+
+    <div class="setting-row">
+        <label>Al bezorgd</label>
+        <input type="number" id="deliveredInput" value="60">
+    </div>
+
+    <button class="reset" onclick="resetTracker()">
+        🔄 Opnieuw beginnen
+    </button>
+
+</details>
+
+<div class="footer" id="status">
+    Voortgang wordt automatisch opgeslagen
+</div>
+
+</div>
+
+<script>
+
+// Begininstellingen
+const defaultData = {
+    total: 170,
+    delivered: 60,
+    startTime: "09:40",
+    startDate: "2026-11-14"
+};
+
+// Opgeslagen gegevens ophalen
+let data;
+
+try {
+    data = JSON.parse(localStorage.getItem("postnlTracker"));
+} catch (error) {
+    data = null;
+}
+
+if (!data) {
+    data = { ...defaultData };
+}
+
+// Gegevens opslaan
+function saveData() {
+    localStorage.setItem(
+        "postnlTracker",
+        JSON.stringify(data)
+    );
+}
+
+// Pakketten toevoegen of verwijderen
+function changePackages(amount) {
+
+    data.delivered += amount;
+
+    if (data.delivered < 0) {
+        data.delivered = 0;
+    }
+
+    if (data.delivered > data.total) {
+        data.delivered = data.total;
+    }
+
+    saveData();
+    updateTracker();
+}
+
+// Minuten omzetten naar uren en minuten
+function formatDuration(minutes) {
+
+    if (!isFinite(minutes)) {
+        return "--";
+    }
+
+    minutes = Math.max(0, Math.floor(minutes));
+
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    return hours + "u " + mins + "m";
+}
+
+// Tracker bijwerken
+function updateTracker() {
+
+    const now = new Date();
+
+    const start = new Date(
+        data.startDate + "T" + data.startTime + ":00"
+    );
+
+    const elapsedMinutes = Math.max(
+        1,
+        (now - start) / 60000
+    );
+
+    const remaining = Math.max(
+        0,
+        data.total - data.delivered
+    );
+
+    const percentage =
+        (data.delivered / data.total) * 100;
+
+    const speed =
+        data.delivered / (elapsedMinutes / 60);
+
+    let minutesLeft = Infinity;
+
+    if (speed > 0) {
+        minutesLeft = (remaining / speed) * 60;
+    }
+
+    // Verwachte eindtijd
+    let finishText = "--:--";
+
+    if (isFinite(minutesLeft)) {
+
+        const finish = new Date(
+            now.getTime() + minutesLeft * 60000
+        );
+
+        finishText = finish.toLocaleTimeString(
+            "nl-NL",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+    }
+
+    // Statistieken tonen
+    document.getElementById("delivered").textContent =
+        data.delivered;
+
+    document.getElementById("totalDisplay").textContent =
+        data.total;
+
+    document.getElementById("remaining").textContent =
+        remaining;
+
+    document.getElementById("percentage").textContent =
+        percentage.toFixed(1).replace(".", ",") + "%";
+
+    document.getElementById("progressFill").style.width =
+        Math.min(100, percentage) + "%";
+
+    document.getElementById("speed").textContent =
+        speed.toFixed(1).replace(".", ",");
+
+    document.getElementById("finishTime").textContent =
+        finishText;
+
+    document.getElementById("timeLeft").textContent =
+        formatDuration(minutesLeft);
+
+    document.getElementById("elapsed").textContent =
+        formatDuration(elapsedMinutes);
+
+    document.getElementById("startInput").value =
+        data.startTime;
+
+    document.getElementById("totalInput").value =
+        data.total;
+
+    document.getElementById("deliveredInput").value =
+        data.delivered;
+}
+
+// Instellingen aanpassen
+document.getElementById("startInput").addEventListener(
+    "change",
+    function () {
+
+        data.startTime = this.value;
+
+        const today = new Date();
+
+        data.startDate =
+            today.getFullYear() + "-" +
+            String(today.getMonth() + 1).padStart(2, "0") + "-" +
+            String(today.getDate()).padStart(2, "0");
+
+        saveData();
+        updateTracker();
+    }
+);
+
+document.getElementById("totalInput").addEventListener(
+    "change",
+    function () {
+
+        data.total = Math.max(
+            1,
+            Number(this.value) || 1
+        );
+
+        if (data.delivered > data.total) {
+            data.delivered = data.total;
+        }
+
+        saveData();
+        updateTracker();
+    }
+);
+
+document.getElementById("deliveredInput").addEventListener(
+    "change",
+    function () {
+
+        data.delivered = Math.max(
+            0,
+            Math.min(data.total, Number(this.value) || 0)
+        );
+
+        saveData();
+        updateTracker();
+    }
+);
+
+// Tracker resetten
+function resetTracker() {
+
+    if (!confirm("Weet je zeker dat je opnieuw wilt beginnen?")) {
+        return;
+    }
+
+    const now = new Date();
+
+    data = {
+        total: 170,
+        delivered: 0,
+        startTime: now.toTimeString().slice(0, 5),
+        startDate:
+            now.getFullYear() + "-" +
+            String(now.getMonth() + 1).padStart(2, "0") + "-" +
+            String(now.getDate()).padStart(2, "0")
+    };
+
+    saveData();
+    updateTracker();
+}
+
+// Scherm wakker houden
+let wakeLock = null;
+
+async function keepAwake() {
+
+    const status = document.getElementById("status");
+    const button = document.getElementById("wakeButton");
+
+    if (!("wakeLock" in navigator)) {
+
+        status.textContent =
+            "Scherm wakker houden wordt niet ondersteund door deze browser.";
+
+        return;
+    }
+
+    try {
+
+        wakeLock = await navigator.wakeLock.request("screen");
+
+        button.textContent =
+            "✅ Scherm blijft wakker";
+
+        status.textContent =
+            "Schermbeveiliging actief zolang de browser dit toestaat.";
+
+        wakeLock.addEventListener("release", function () {
+            button.textContent =
+                "🔆 Scherm wakker houden";
+        });
+
+    } catch (error) {
+
+        status.textContent =
+            "Scherm wakker houden is niet toegestaan op dit apparaat.";
+    }
+}
+
+// Scherm opnieuw wakker houden als je terugkomt
+document.addEventListener(
+    "visibilitychange",
+    async function () {
+
+        if (
+            document.visibilityState === "visible" &&
+            wakeLock !== null &&
+            wakeLock.released
+        ) {
+
+            try {
+                wakeLock = await navigator.wakeLock.request("screen");
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+);
+
+// Direct starten
+updateTracker();
+
+// Iedere 15 seconden vernieuwen
+setInterval(updateTracker, 15000);
+
+</script>
+
+</body>
+</html>
